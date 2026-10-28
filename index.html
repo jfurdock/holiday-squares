@@ -1,0 +1,757 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+</head>
+<body>
+<title>Holiday Squares</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Damion&family=Instrument+Sans:wght@400..700&family=Instrument+Serif&display=swap" rel="stylesheet">
+<style>
+/* Layout: holiday table-linen grounds (Thanksgiving plaid, Christmas candy-cane stripe) with ink in the season's darkest color. TV = team | 3x3 board | team; #answers = one-screen answer key. Single committed light look per holiday. */
+:root{
+  --stripe-a:#fde6ec; --stripe-b:#f8c9d6; --paper:#fff5f7; --paper-2:#fdeef1;
+  --ink:#5c2315; --ink-soft:#8d4e3c; --muted:#b4857b; --rule:#c73b55;
+  --cocoa:#5c2315; --on-cocoa:#fff5f7; --berry:#d23f68; --on-berry:#ffffff;
+  --good:#2f7a4f; --bad:#b3263f; --scrim:rgba(70,22,12,.42);
+  --f-script:"Damion","Brush Script MT","Segoe Script",cursive;
+  --f-caps:"Instrument Serif","Bodoni 72",Didot,Georgia,serif;
+  --f-ui:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:light;
+}
+[hidden]{display:none!important}
+:root[data-season="thanks"],:root:not([data-season]){
+  --stripe-a:#fbf0e2; --stripe-b:#f1d8b9; --paper:#fffaf2; --paper-2:#fbf0e1;
+  --ink:#4a2614; --ink-soft:#86563a; --muted:#c29c7e; --rule:#c8641e;
+  --cocoa:#6b3a1f; --on-cocoa:#fffaf2; --berry:#cc6a22; --on-berry:#ffffff;
+  --good:#3f7a35; --bad:#b0341e; --scrim:rgba(58,28,10,.45);
+}
+:root[data-season="xmas"]{
+  --stripe-a:#fbf4ef; --stripe-b:#f3d5d2; --paper:#fffaf6; --paper-2:#fbefeb;
+  --ink:#1d4130; --ink-soft:#4e6c5c; --muted:#a8b8ad; --rule:#b8323d;
+  --cocoa:#2e6b46; --on-cocoa:#fffaf6; --berry:#c0303c; --on-berry:#ffffff;
+  --good:#2f7a4f; --bad:#b3263f; --scrim:rgba(16,40,28,.45);
+}
+:root[data-season="thanks"] body,:root:not([data-season]) body{background-color:var(--stripe-a);
+  background-image:repeating-linear-gradient(90deg,rgba(204,106,34,.13) 0 22px,transparent 22px 64px),repeating-linear-gradient(0deg,rgba(204,106,34,.13) 0 22px,transparent 22px 64px),repeating-linear-gradient(90deg,transparent 0 30px,rgba(107,58,31,.06) 30px 34px,transparent 34px 64px)}
+:root[data-season="xmas"] body{background-color:var(--stripe-a);background-image:repeating-linear-gradient(135deg,var(--stripe-a) 0 26px,var(--stripe-b) 26px 44px)}
+html,body{height:100%}
+body{margin:0;color:var(--ink);font-family:var(--f-ui);background-color:var(--stripe-a);
+  background-image:repeating-linear-gradient(90deg,var(--stripe-a) 0 30px,var(--stripe-b) 30px 52px)}
+button{font:inherit;color:inherit}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--rule);outline-offset:2px}
+.caps{font-family:var(--f-caps);text-transform:uppercase;letter-spacing:.06em}
+.script{font-family:var(--f-script);font-weight:400}
+.bow{display:block;width:clamp(100px,min(16vw,15vh),220px);height:auto;margin:0 auto -6px}
+.bow path,.bow ellipse{fill:var(--paper);stroke:var(--ink);stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
+.bow .tail{fill:none}
+
+/* ---------- TV ---------- */
+#tv{min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;padding-block:clamp(10px,2.2vh,26px);padding-inline:clamp(16px,3vw,52px);gap:clamp(8px,1.6vh,18px)}
+.hd{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.brand{font-size:clamp(26px,3vw,46px);line-height:1}
+.round{font-size:clamp(13px,1.2vw,18px);color:var(--ink-soft)}
+.prompt{text-align:center;font-family:var(--f-caps);text-transform:uppercase;letter-spacing:.05em;font-size:clamp(22px,3.4vw,58px);line-height:1.05;margin:0;text-wrap:balance}
+.prompt small{display:block;font-size:.36em;letter-spacing:.14em;color:var(--ink-soft);margin-bottom:.35em}
+.stage{flex:1;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:clamp(14px,3vw,56px);min-height:0}
+.board-wrap{position:relative;padding:clamp(10px,1.4vw,22px);background:var(--paper);border-radius:22px;box-shadow:0 0 0 1.5px var(--rule),0 10px 30px rgba(92,35,21,.12)}
+.board{width:min(60vh,46vw);aspect-ratio:1;max-width:100%;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:3%;container-type:inline-size}
+.sq{position:relative;border:2px dashed var(--ink-soft);border-radius:14px;background:var(--paper-2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2cqi;padding:3%;cursor:default;transition:transform .2s ease,background .2s ease,box-shadow .2s ease;min-width:0;overflow:hidden}
+.sq[disabled]{cursor:default}
+.sq .lbl{font-family:var(--f-caps);text-transform:uppercase;letter-spacing:.14em;font-size:2.6cqi;color:var(--ink-soft)}
+.sq .rng{font-family:var(--f-caps);font-size:10.5cqi;line-height:.9;font-variant-numeric:tabular-nums;white-space:nowrap}
+.sq .rng i{font-style:normal;font-size:.55em;vertical-align:.45em;margin-right:.05em;color:var(--ink-soft)}
+.sq.own{border-style:solid;border-color:transparent}
+.sq.t0{background:var(--cocoa);color:var(--on-cocoa)}
+.sq.t1{background:var(--berry);color:var(--on-berry)}
+.sq.own .lbl{color:inherit;opacity:.8}
+.sq .ans{font-family:var(--f-script);font-size:5.4cqi;line-height:1.05;text-align:center;overflow-wrap:anywhere;text-wrap:balance}
+.sq .meta{font-family:var(--f-caps);font-size:3.2cqi;letter-spacing:.08em;display:flex;align-items:center;gap:1cqi;font-variant-numeric:tabular-nums}
+.sq .lock{width:3.2cqi;height:3.2cqi;fill:currentColor}
+.sq.winline{box-shadow:0 0 0 4px var(--paper),0 0 0 8px var(--rule);z-index:1}
+.sq.pop{animation:pop .5s cubic-bezier(.3,1.6,.5,1)}
+@keyframes pop{0%{transform:scale(.7)}100%{transform:scale(1)}}
+.team{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;min-width:0}
+.team .nm{font-family:var(--f-script);font-size:clamp(28px,3.2vw,60px);line-height:1;overflow-wrap:anywhere}
+.team .chip{width:clamp(40px,4.4vw,72px);aspect-ratio:1;border-radius:12px}
+.team .cnt{font-family:var(--f-caps);font-size:clamp(14px,1.3vw,22px);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft)}
+.team .turn{font-family:var(--f-caps);text-transform:uppercase;letter-spacing:.14em;font-size:clamp(13px,1.2vw,20px);padding:.45em 1em;border-radius:999px;border:1.5px solid var(--ink);visibility:hidden}
+.team.on .turn{visibility:visible;background:var(--ink);color:var(--paper);animation:breathe 2.4s ease-in-out infinite}
+.team:not(.on){opacity:.62}
+@keyframes breathe{50%{transform:scale(1.06)}}
+.played{display:flex;flex-wrap:wrap;gap:6px 8px;justify-content:center;min-height:30px}
+.pc{font-family:var(--f-caps);font-size:clamp(13px,1.1vw,18px);letter-spacing:.04em;padding:.2em .7em;border-radius:999px;border:1.5px solid var(--ink-soft);background:var(--paper);white-space:nowrap;font-variant-numeric:tabular-nums}
+.pc.t0{background:var(--cocoa);color:var(--on-cocoa);border-color:var(--cocoa)}
+.pc.t1{background:var(--berry);color:var(--on-berry);border-color:var(--berry)}
+.pc.miss{text-decoration:line-through;text-decoration-thickness:1.5px;color:var(--ink-soft)}
+.bar{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;opacity:.55;transition:opacity .2s}
+.bar:hover,.bar:focus-within{opacity:1}
+.btn{font-family:var(--f-caps);text-transform:uppercase;letter-spacing:.1em;font-size:14px;padding:.55em 1.1em;border-radius:999px;border:1.5px solid var(--ink);background:var(--paper);cursor:pointer}
+.btn:hover{background:#fff}
+.btn.solid{background:var(--ink);color:var(--paper)}
+.btn.t0{background:var(--cocoa);color:var(--on-cocoa);border-color:var(--cocoa)}
+.btn.t1{background:var(--berry);color:var(--on-berry);border-color:var(--berry)}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+.link{position:fixed;right:12px;bottom:10px;font-size:12px;color:var(--ink-soft);display:flex;align-items:center;gap:6px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.dot.on{background:var(--good)}
+
+/* Flash banner */
+.flash{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(.9);opacity:0;pointer-events:none;z-index:5;width:max-content;max-width:110%;text-align:center;background:var(--paper);border:2px solid var(--ink);border-radius:20px;padding:clamp(12px,1.6vw,24px) clamp(18px,2.4vw,40px);box-shadow:0 18px 40px rgba(92,35,21,.28);transition:opacity .25s,transform .25s}
+.flash.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.flash .big{font-family:var(--f-script);font-size:clamp(30px,3.6vw,64px);line-height:1.05}
+.flash .sub{font-family:var(--f-caps);text-transform:uppercase;letter-spacing:.08em;font-size:clamp(15px,1.5vw,26px);margin-top:.3em;color:var(--ink-soft)}
+.flash.bad .big{color:var(--bad)}
+
+/* Menu */
+.menu{flex:1;display:flex;align-items:center;justify-content:center}
+.card{background:var(--paper);border-radius:26px;box-shadow:0 0 0 1.5px var(--rule),0 12px 34px rgba(92,35,21,.14);padding:clamp(14px,2.6vh,40px) clamp(18px,4vw,64px);width:min(100%,980px);box-sizing:border-box}
+.title{font-family:var(--f-script);font-size:clamp(44px,min(7vw,9vh),110px);line-height:.95;text-align:center;margin:.1em 0 .1em}
+.honor{text-align:center;font-family:var(--f-caps);text-transform:uppercase;letter-spacing:.14em;color:var(--ink-soft);font-size:clamp(14px,1.4vw,20px);margin:0}
+.items{list-style:none;margin:clamp(10px,2vh,26px) 0;padding:0;display:grid;gap:4px}
+.item{width:100%;display:grid;grid-template-columns:auto auto 1fr auto;align-items:baseline;gap:14px;padding:clamp(3px,.6vh,8px) .6em;background:none;border:0;border-radius:12px;cursor:pointer;text-align:left}
+.item:hover{background:var(--paper-2)}
+.item .no{font-family:var(--f-caps);font-size:clamp(14px,1.3vw,20px);letter-spacing:.1em;color:var(--ink-soft)}
+.item .gn{font-family:var(--f-script);font-size:clamp(26px,2.8vw,44px);line-height:1}
+.item .lead{border-bottom:2px dotted var(--muted);transform:translateY(-.35em);min-width:20px}
+.item .kind{font-family:var(--f-caps);text-transform:uppercase;letter-spacing:.14em;font-size:clamp(13px,1.2vw,18px)}
+.item .q{grid-column:2/-1;font-family:var(--f-caps);font-size:clamp(14px,1.3vw,20px);color:var(--ink-soft);margin-top:-2px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.item.done .gn{text-decoration:line-through;text-decoration-thickness:2px;color:var(--ink-soft)}
+.gpick .done .gn{text-decoration:line-through;text-decoration-thickness:2px;color:var(--ink-soft)}
+.menu .honor{margin-top:clamp(10px,1.6vh,18px)}
+.seasons{display:flex;justify-content:center;gap:8px;margin-top:clamp(14px,2.2vh,26px)}
+.seasons button{font-family:var(--f-caps);text-transform:uppercase;letter-spacing:.12em;font-size:clamp(13px,1.2vw,17px);padding:.45em 1.2em;border-radius:999px;border:1.5px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer}
+.seasons button.on{background:var(--ink);color:var(--paper)}
+.won{font-family:var(--f-caps);text-transform:uppercase;letter-spacing:.1em;font-size:clamp(12px,1vw,15px);padding:.3em .9em;border-radius:999px;white-space:nowrap}
+.won.t0{background:var(--cocoa);color:var(--on-cocoa)}
+.won.t1{background:var(--berry);color:var(--on-berry)}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px 24px;border-top:1.5px solid var(--rule);padding-top:16px;margin:0}
+.rules div{font-size:clamp(13px,1.05vw,16px);line-height:1.4;color:var(--ink-soft)}
+.rules b{display:block;font-family:var(--f-caps);text-transform:uppercase;letter-spacing:.1em;color:var(--ink);font-weight:400;font-size:1.1em}
+.names{display:flex;gap:12px;justify-content:center;align-items:center;flex-wrap:wrap;margin-top:clamp(10px,1.8vh,18px)}
+.names label{display:flex;align-items:center;gap:8px;font-family:var(--f-caps);text-transform:uppercase;letter-spacing:.1em;font-size:13px;color:var(--ink-soft)}
+.names input{font:500 15px var(--f-ui);color:var(--ink);background:#fff;border:1.5px solid var(--ink-soft);border-radius:10px;padding:.4em .6em;width:12em}
+.sw{display:inline-block;width:14px;height:14px;border-radius:4px}
+
+/* Overlays */
+.ov{position:fixed;inset:0;background:var(--scrim);display:flex;align-items:center;justify-content:center;padding:16px;z-index:20}
+.ov .card{max-height:calc(100% - 32px);overflow:auto}
+.pick h3{font-family:var(--f-script);font-weight:400;font-size:clamp(30px,3vw,48px);margin:0;text-align:center;line-height:1.1}
+.pick p.c{text-align:center;margin:.3em 0 1em;font-family:var(--f-caps);text-transform:uppercase;letter-spacing:.1em;color:var(--ink-soft)}
+.verdict{min-height:3.2em;text-align:center;margin:14px 0 6px}
+.verdict .a{font-family:var(--f-script);font-size:clamp(26px,2.6vw,40px)}
+.verdict .w{font-family:var(--f-caps);text-transform:uppercase;letter-spacing:.08em}
+.verdict .ok{color:var(--good)} .verdict .no{color:var(--bad)}
+.row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.winbox{text-align:center}
+.winbox .bow{margin-bottom:10px}
+.bigbtn{font-size:clamp(18px,2vw,30px)!important;padding:.75em 1.8em!important}
+.winbox .big{font-family:var(--f-script);font-size:clamp(54px,7vw,120px);line-height:1}
+.reveal h3{font-family:var(--f-script);font-weight:400;font-size:clamp(30px,3vw,52px);margin:0 0 .1em;text-align:center}
+.reveal ol{list-style:none;padding:0;margin:14px 0;columns:3 220px;column-gap:28px}
+.reveal li{break-inside:avoid;display:flex;gap:10px;align-items:baseline;padding:4px 0;border-bottom:1px dotted var(--muted);font-size:clamp(15px,1.3vw,21px)}
+.reveal li .r{font-family:var(--f-caps);width:2.2em;text-align:right;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.reveal li.t0 .n{color:var(--cocoa);font-weight:700}
+.reveal li.t1 .n{color:var(--berry);font-weight:700}
+.reveal li.miss .n{text-decoration:underline dotted}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:30}
+
+@media (max-width:820px){
+  .stage{grid-template-columns:1fr 1fr;grid-template-areas:"a b" "c c"}
+  .stage .team:first-child{grid-area:a}.stage .team:last-child{grid-area:b}.board-wrap{grid-area:c;justify-self:center}
+  .board{width:min(88vw,520px)}
+  .item{grid-template-columns:auto 1fr auto}.item .lead{display:none}.item .q{grid-column:1/-1}
+}
+
+/* ---------- HOST (#answers): everything on one screen, no scrolling ---------- */
+#host{height:100vh;height:100dvh;box-sizing:border-box;display:flex;flex-direction:column;gap:8px;padding-block:10px;padding-inline:16px;overflow:hidden}
+.hbar{display:flex;align-items:center;gap:8px 10px;flex-wrap:wrap;background:var(--paper);border-radius:14px;padding:8px 10px;box-shadow:0 0 0 1.5px var(--rule)}
+.htitle{font-family:var(--f-script);font-size:28px;line-height:1}
+select#gameSel{font:600 14px var(--f-ui);color:var(--ink);background:#fff;border:1.5px solid var(--ink-soft);border-radius:10px;padding:.4em .5em;min-width:0;max-width:230px}
+.turns{display:flex;gap:6px}
+.turns button{border-radius:10px;border:2px solid var(--muted);padding:.4em .8em;font:600 14px var(--f-ui);cursor:pointer;background:var(--paper-2);color:var(--ink);white-space:nowrap}
+.turns button.t0.on{background:var(--cocoa);color:var(--on-cocoa);border-color:var(--cocoa)}
+.turns button.t1.on{background:var(--berry);color:var(--on-berry);border-color:var(--berry)}
+#q{font:500 15px var(--f-ui);color:var(--ink);background:#fff;border:1.5px solid var(--ink);border-radius:10px;padding:.45em .7em;flex:1;min-width:150px}
+.hbar .btn{font-size:12px;padding:.5em .9em}
+.sync{font-size:12px;color:var(--ink-soft);display:flex;align-items:center;gap:6px;white-space:nowrap}
+.hq{font-family:var(--f-caps);text-transform:uppercase;letter-spacing:.05em;font-size:clamp(15px,2.4vh,24px);line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:none}
+.hmain{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(270px,340px);gap:12px}
+.agrid{list-style:none;margin:0;padding:0;min-height:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(10,minmax(0,1fr));grid-auto-flow:column;gap:5px}
+.agrid li{min-height:0;display:flex}
+.agrid button{flex:1;display:flex;align-items:center;gap:8px;padding:0 10px;text-align:left;background:#fff;border:1.5px solid var(--paper-2);border-radius:10px;cursor:pointer;min-width:0;min-height:0;overflow:hidden}
+.agrid button:hover{border-color:var(--ink-soft)}
+.agrid .rk{font-family:var(--f-caps);font-size:clamp(15px,2.7vh,26px);width:1.5em;flex:none;text-align:right;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.agrid .tx{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center}
+.agrid .nm{font-weight:600;font-size:clamp(12.5px,2vh,18px);line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.agrid .al{font-size:clamp(10px,1.45vh,13px);line-height:1.2;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tag{flex:none;font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:.2em .55em;border-radius:999px;white-space:nowrap}
+.tag.t0{background:var(--cocoa);color:var(--on-cocoa)}
+.tag.t1{background:var(--berry);color:var(--on-berry)}
+.tag.miss{border:1px solid var(--muted);color:var(--ink-soft)}
+.agrid li.used button{background:var(--paper-2)}
+.agrid li.used .nm{text-decoration:line-through;color:var(--ink-soft)}
+.agrid li.dim{opacity:.25}
+.agrid li.hit button{border-color:var(--rule);box-shadow:0 0 0 1.5px var(--rule)}
+.agrid li.sel button{background:var(--stripe-b);border-color:var(--ink);box-shadow:0 0 0 2px var(--ink)}
+.side{min-height:0;display:flex;flex-direction:column;gap:10px;padding:12px;border-radius:16px;background:var(--paper);box-shadow:0 0 0 1.5px var(--rule);overflow:hidden}
+.mini{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.mini .ms{min-height:clamp(42px,8vh,72px);border-radius:12px;border:2px dashed var(--ink-soft);background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px;min-width:0}
+.mini .ms .rng{font-family:var(--f-caps);font-size:clamp(16px,2.6vh,24px);line-height:1;font-variant-numeric:tabular-nums}
+.mini .ms .sm{font-size:11px;line-height:1.15;text-align:center;overflow-wrap:anywhere}
+.mini .ms.t0{background:var(--cocoa);color:var(--on-cocoa);border-style:solid;border-color:var(--cocoa)}
+.mini .ms.t1{background:var(--berry);color:var(--on-berry);border-style:solid;border-color:var(--berry)}
+.mini .ms.sel{outline:4px solid var(--rule);outline-offset:2px}
+.mini .ms.sel.fit{outline-color:var(--good)}
+.mini .ms.winline{outline:3px solid var(--good)}
+.step{font-family:var(--f-caps);text-transform:uppercase;letter-spacing:.1em;font-size:13px;color:var(--ink-soft);display:flex;justify-content:space-between;gap:8px}
+.step b{color:var(--ink);font-weight:400}
+.side .st{font-size:15px;line-height:1.35;min-height:2.7em}
+.side .st b{font-weight:700}
+.side .ok{color:var(--good);font-weight:700}.side .no{color:var(--bad);font-weight:700}
+.side .row{justify-content:stretch;gap:8px}.side .row .btn{flex:1;font-size:13px;padding:.75em .6em}
+.side .tools{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto}
+.side .tools .btn{font-size:11.5px;padding:.5em .8em;flex:1}
+.btn.armed{background:var(--bad);color:var(--on-berry);border-color:var(--bad)}
+.winnote{background:var(--ink);color:var(--paper);border-radius:12px;padding:10px 14px;font-weight:600}
+.gpick{list-style:none;margin:0;padding:0;display:grid;gap:10px;align-content:start}
+.gpick button{width:100%;text-align:left;background:#fff;border:1.5px solid var(--ink-soft);border-radius:14px;padding:12px 16px;cursor:pointer;display:flex;align-items:baseline;gap:12px}
+.gpick .gn{font-family:var(--f-script);font-size:28px;line-height:1}
+.gpick .q{font-size:14px;color:var(--ink-soft)}
+.gpick button{flex-wrap:wrap}.gpick .won{margin-left:auto}
+@media (max-width:820px){
+  #host{gap:6px;padding-block:6px;padding-inline:8px}
+  .hbar{padding:6px 8px;gap:6px}
+  .htitle{font-size:22px}
+  select#gameSel{max-width:none;flex:1}
+  .turns{flex:1}.turns button{flex:1;padding:.35em .4em;font-size:13px}
+  #q{flex-basis:100%;font-size:16px;padding:.35em .6em}
+  .hbar .sync,.hbar [data-h="tvwin"]{display:none}
+  .hq{font-size:14px;white-space:normal}
+  .hmain{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto;gap:6px}
+  .agrid{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(15,minmax(0,1fr));gap:3px}
+  .agrid button{padding:0 6px;gap:5px;border-radius:7px}
+  .agrid .rk{font-size:14px;width:1.4em}
+  .agrid .nm{font-size:12.5px}
+  .agrid .al{display:none}
+  .agrid .tag{font-size:0;width:9px;height:9px;padding:0}
+  .side{padding:8px;gap:6px}
+  .mini{gap:4px}.mini .ms{min-height:32px;flex-direction:row;gap:6px;padding:2px 4px}
+  .mini .ms .rng{font-size:15px}.mini .ms .sm{font-size:10px}
+  .step{display:none}
+  .side .st{font-size:13px;min-height:2.6em}
+  .side .row .btn{padding:.6em .4em;font-size:12px}
+  .side .tools .btn{padding:.4em .5em;font-size:10.5px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div id="tv" hidden></div>
+<div id="host" hidden></div>
+<canvas id="confetti" hidden></canvas>
+
+<script>
+/* ================= GAME DATA =================
+   Ranks are the host's answer key: #1 = most common answer.
+   Each answer: [display name, ...other ways guests might say it]. */
+const GAMES = [
+  { season:"thanks", name:"The Feast", kind:"Food", ranges:[[1,3],[4,6],[7,9],[10,12],[13,15],[16,19],[20,23],[24,27],[28,30]],
+    prompt:"Name a dish on the Thanksgiving table",
+    answers:[
+      ["Turkey","roast turkey"],["Mashed potatoes","potatoes","mashed"],["Stuffing","dressing"],["Cranberry sauce","cranberries","cranberry"],
+      ["Pumpkin pie"],["Gravy"],["Green bean casserole","green beans"],["Sweet potatoes","yams","candied yams","sweet potato casserole"],
+      ["Rolls","dinner rolls","bread"],["Mac and cheese","macaroni","mac n cheese"],["Corn","creamed corn"],["Ham"],["Pecan pie"],["Apple pie"],
+      ["Cornbread","corn bread"],["Deviled eggs"],["Salad"],["Brussels sprouts"],["Carrots","glazed carrots"],["Squash","butternut squash"],
+      ["Corn casserole","corn pudding"],["Sweet potato pie"],["Collard greens","greens"],["Biscuits"],["Jell-O salad","jello"],
+      ["Cheese board","cheese and crackers","charcuterie"],["Broccoli casserole","broccoli"],["Ambrosia"],["Asparagus"],["Pumpkin bread"]
+    ]},
+  { season:"thanks", name:"Count Your Blessings", kind:"Family", ranges:[[1,2],[3,5],[6,8],[9,11],[12,14],[15,18],[19,22],[23,26],[27,30]],
+    prompt:"Name something people say they’re thankful for",
+    answers:[
+      ["Family"],["Friends"],["Health","good health"],["Food","a good meal"],["Home","house","roof over my head"],["Kids","children"],
+      ["Job","work","career"],["Pets","dog","cat"],["Life","being alive"],["Faith","god","church"],["Love"],["Spouse","husband","wife","partner"],
+      ["Parents","mom","dad"],["Freedom"],["Money"],["Happiness"],["Grandparents","grandma","grandpa"],["Grandkids","grandchildren"],
+      ["Peace"],["Education","school"],["Siblings","brother","sister"],["Good weather","sunshine"],["Coffee"],["Memories"],
+      ["Time off","vacation","holidays"],["Clean water","water"],["Laughter"],["Neighbors","community"],["Teachers"],["Leftovers"]
+    ]},
+  { season:"thanks", name:"Food Coma", kind:"Fun", ranges:[[1,3],[4,6],[7,9],[10,12],[13,15],[16,20],[21,24],[25,27],[28,30]],
+    prompt:"Name something people do after Thanksgiving dinner",
+    answers:[
+      ["Take a nap","nap","sleep"],["Watch football","football game"],["Eat dessert","pie","dessert"],["Do the dishes","dishes","clean up"],
+      ["Go for a walk","walk"],["Play games","board games","cards"],["Black Friday shopping","shopping","shop"],["Watch a movie","movie","tv"],
+      ["Unbutton their pants","loosen belt","stretchy pants"],["Eat leftovers","leftovers","seconds"],["Talk","chat","catch up"],
+      ["Pack to-go plates","to-go plates","tupperware"],["Decorate for Christmas","put up the tree","christmas decorations"],["Drink coffee","coffee"],
+      ["Go home","drive home","leave"],["Take family photos","photos","pictures"],["Have a drink","wine","beer"],["Argue","debate","politics"],
+      ["Throw the football","play football"],["Lie on the couch","couch","relax"],["Say what they’re thankful for","gratitude"],
+      ["Call relatives","facetime","phone call"],["Play with the kids","kids"],["Burp","belch"],["Make a turkey sandwich","sandwich"],
+      ["Take antacids","tums","heartburn"],["Watch the dog show","dog show"],["Write a Christmas list","wish list"],["Do a puzzle","puzzle"],["Work out","gym","exercise"]
+    ]},
+  { season:"thanks", name:"The Pie Table", kind:"Dessert", ranges:[[1,2],[3,4],[5,7],[8,10],[11,14],[15,18],[19,22],[23,26],[27,30]],
+    prompt:"Name a kind of pie",
+    answers:[
+      ["Pumpkin"],["Apple","dutch apple"],["Pecan"],["Cherry"],["Sweet potato"],["Blueberry"],["Key lime","lime"],["Chocolate cream","chocolate"],
+      ["Lemon meringue","lemon"],["Banana cream","banana"],["Coconut cream","coconut"],["Peach"],["Strawberry rhubarb"],["Strawberry"],
+      ["Blackberry"],["French silk"],["Mincemeat","mince"],["Cranberry"],["Boston cream"],["Rhubarb"],["Raspberry"],["Chess","buttermilk"],
+      ["Pear"],["Mississippi mud","mud pie"],["Shoofly"],["Butterscotch"],["Custard"],["Maple"],["Peanut butter"],["Banoffee"]
+    ]},
+  { season:"xmas", name:"Under the Tree", kind:"Gifts", ranges:[[1,3],[4,6],[7,9],[10,13],[14,17],[18,21],[22,24],[25,27],[28,30]],
+    prompt:"Name a popular Christmas gift",
+    answers:[
+      ["Gift card","gift cards"],["Clothes","clothing"],["Toys","toy"],["Socks"],["Money","cash"],["Jewelry","necklace","earrings"],["Books","book"],
+      ["Video games","video game","game console"],["Perfume","cologne"],["Phone","iphone","cell phone"],["Candles","candle"],["Pajamas","pjs"],
+      ["Electronics","gadgets"],["Headphones","earbuds","airpods"],["Sweater","ugly sweater"],["Chocolate","candy"],["Bike","bicycle"],["Wine"],
+      ["Tools"],["Makeup"],["Lego","legos"],["Board game"],["Watch"],["Slippers"],["Mug","coffee mug"],["Blanket","throw"],["Tablet","ipad"],
+      ["Puzzle"],["Wallet","purse"],["Scarf","gloves"]
+    ]},
+  { season:"xmas", name:"Deck the Halls", kind:"Decor", ranges:[[1,3],[4,6],[7,9],[10,12],[13,15],[16,19],[20,23],[24,27],[28,30]],
+    prompt:"Name a Christmas decoration",
+    answers:[
+      ["Christmas tree","tree"],["Lights","string lights"],["Ornaments","ornament","baubles"],["Wreath"],["Stockings","stocking"],["Garland"],
+      ["Star","tree topper"],["Tinsel"],["Mistletoe"],["Nativity scene","nativity","manger"],["Candy canes","candy cane"],["Angel"],["Snowman"],
+      ["Poinsettia"],["Inflatables","blow-up santa"],["Candles"],["Bows","ribbon"],["Santa figure","santa"],["Christmas village","village"],
+      ["Reindeer"],["Bells"],["Snow globe"],["Nutcracker"],["Tree skirt"],["Advent calendar"],["Elf on the Shelf","elf"],["Holly"],
+      ["Pinecones","pine cones"],["Snowflakes"],["Gingerbread house","gingerbread"]
+    ]},
+  { season:"xmas", name:"Jingle All the Way", kind:"Music", ranges:[[1,2],[3,5],[6,8],[9,11],[12,14],[15,18],[19,22],[23,26],[27,30]],
+    prompt:"Name a Christmas song",
+    answers:[
+      ["Jingle Bells"],["Silent Night"],["Rudolph the Red-Nosed Reindeer","rudolph"],["White Christmas"],["Deck the Halls"],["Frosty the Snowman","frosty"],
+      ["All I Want for Christmas Is You","all i want for christmas","mariah"],["Joy to the World"],["We Wish You a Merry Christmas"],["O Holy Night"],
+      ["Santa Claus Is Comin’ to Town","santa claus is coming to town"],["Let It Snow"],["Feliz Navidad"],["Jingle Bell Rock"],
+      ["Rockin’ Around the Christmas Tree","rocking around the christmas tree"],["The Twelve Days of Christmas","12 days of christmas"],
+      ["Silver Bells"],["O Come All Ye Faithful"],["Hark! The Herald Angels Sing","hark the herald"],["Little Drummer Boy"],["Away in a Manger"],
+      ["Have Yourself a Merry Little Christmas"],["Last Christmas"],["Blue Christmas"],["Here Comes Santa Claus"],["Winter Wonderland"],
+      ["Santa Baby"],["A Holly Jolly Christmas","holly jolly"],["O Christmas Tree"],["The First Noel","first noel"]
+    ]},
+  { season:"xmas", name:"Santa’s Workshop", kind:"Santa", ranges:[[1,3],[4,6],[7,9],[10,12],[13,15],[16,20],[21,24],[25,27],[28,30]],
+    prompt:"Name something associated with Santa Claus",
+    answers:[
+      ["Reindeer","rudolph"],["Sleigh"],["Elves","elf"],["Cookies"],["Presents","gifts"],["Red suit","suit"],["Beard","white beard"],
+      ["North Pole"],["Chimney"],["Milk"],["Mrs. Claus","mrs claus","wife"],["Ho ho ho"],["Naughty or nice list","the list","naughty list","nice list"],
+      ["Toys"],["Big belly","belly"],["Workshop"],["Hat","santa hat"],["Sack","bag","toy bag"],["Christmas Eve"],["Black boots","boots"],
+      ["Stockings"],["Coal"],["Candy canes"],["Jingle bells","bells","sleigh bells"],["Snow"],["Glasses","spectacles"],["Mall Santa","sitting on his lap"],
+      ["Letters to Santa","letters"],["Black belt","belt"],["Carrots for the reindeer","carrots"]
+    ]}
+];
+const SEASONS={
+  thanks:{label:"Thanksgiving",title:"Thanksgiving Squares",greet:"Happy Thanksgiving",names:["Team Turkey","Team Pie"]},
+  xmas:{label:"Christmas",title:"Christmas Squares",greet:"Merry Christmas",names:["Team Holly","Team Candy Cane"]}
+};
+
+/* Squares read in rank order (top-left = #1, left to right). Ranges never overlap and cover #1–30, so every answer fits exactly one square. */
+GAMES.forEach(g=>g.ranges.sort((a,b)=>a[0]-b[0]||a[1]-b[1]));
+
+/* ================= STATE ================= */
+const LINES=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+const KEY="holiday-squares-v1";
+const LOCAL=location.protocol==="file:"||(location.protocol.startsWith("http")&&!/claude/.test(location.host));
+
+const freshRound=g=>({g,board:Array(9).fill(null),turn:0,used:[],win:null,reveal:false,flash:null,choose:true});
+let S=Object.assign(freshRound(null),{names:SEASONS.thanks.names.slice(),season:"thanks",done:[],winners:{},v:0});
+const hist=[];
+function valid(d){
+  if(!d||typeof d!=="object")return false;
+  if(!(d.g===null||(Number.isInteger(d.g)&&d.g>=0&&d.g<GAMES.length)))return false;
+  if(!Array.isArray(d.board)||d.board.length!==9)return false;
+  if(!d.board.every(c=>c===null||(c&&(c.t===0||c.t===1)&&Number.isInteger(c.r))))return false;
+  if(!Array.isArray(d.used)||!Array.isArray(d.names)||d.names.length!==2)return false;
+  return true;
+}
+try{const s=JSON.parse(localStorage.getItem(KEY));if(valid(s))S=Object.assign({done:[],winners:{}},s);}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function commit(mut){
+  hist.push(JSON.stringify(S));if(hist.length>80)hist.shift();
+  const n=JSON.parse(JSON.stringify(S));mut(n);n.v=Date.now();S=n;save();render();broadcast();
+}
+function undo(){
+  if(!hist.length)return;
+  S=JSON.parse(hist.pop());S.v=Date.now();S.flash=null;save();render();broadcast();
+}
+const G=()=>S.g===null?null:GAMES[S.g];
+const curSeason=()=>S.g!==null&&GAMES[S.g]?GAMES[S.g].season:(SEASONS[S.season]?S.season:"thanks");
+const seasonGames=k=>GAMES.map((g,i)=>i).filter(i=>GAMES[i].season===k);
+const posIn=i=>seasonGames(GAMES[i].season).indexOf(i)+1;
+/* Switching holidays swaps the default team names, but keeps names the host typed. */
+function adjustNames(n,k){const isDef=Object.values(SEASONS).some(x=>x.names[0]===n.names[0]&&x.names[1]===n.names[1]);if(isDef)n.names=SEASONS[k].names.slice();}
+function setSeason(k){if(curSeason()===k&&S.g===null)return;commit(n=>{n.g=null;n.season=k;n.reveal=false;n.flash=null;adjustNames(n,k);});}
+const fmt=(lo,hi)=>lo===hi?"#"+lo:"#"+lo+"–"+hi;
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const winnerOf=i=>{const w=S.winners&&S.winners[i];return w===0||w===1?w:null;};
+const wonPill=i=>{const w=winnerOf(i);return w===null?"":`<span class="won t${w}">Won by ${esc(S.names[w])}</span>`;};
+const usedRank=r=>S.used.find(u=>u.r===r);
+
+/* Rules: an answer fits a square when its rank is inside the square's range.
+   Steal = fits AND ranks better (lower #) than the answer holding it.
+   A square held by the top rank of its range is locked. Every answer can be played once. */
+function judge(sq,r,team){
+  const g=G();if(!g)return{block:true,why:"Pick a game first"};
+  if(S.win)return{block:true,why:"This game is over"};
+  if(sq===null||sq===undefined){
+    if(r===null)return{ok:false,why:"Not on the list"};
+    return{block:true,why:"Pick the square they chose"};
+  }
+  const[lo,hi]=g.ranges[sq],cell=S.board[sq];
+  if(cell&&cell.r===lo)return{block:true,code:"locked",why:"That square is locked (it holds "+fmt(lo,lo)+")"};
+  if(r===null)return{ok:false,why:"Not on the list"};
+  if(usedRank(r))return{block:true,why:"#"+r+" was already played. Ask for another answer"};
+  if(r<lo||r>hi)return{ok:false,why:"#"+r+" isn’t in "+fmt(lo,hi)};
+  const mine=!!cell&&cell.t===team;
+  if(cell&&r>=cell.r)return{ok:false,why:mine?"They already hold #"+cell.r+" there. Needs a better rank to upgrade":"Needs better than #"+cell.r+" to steal"};
+  return{ok:true,steal:!!cell&&!mine,upgrade:mine,why:mine?"Upgrade!":cell?"Steal!":"Fits the square"};
+}
+function checkWin(b){
+  for(const L of LINES){const[a,c,d]=L;if(b[a]&&b[c]&&b[d]&&b[a].t===b[c].t&&b[a].t===b[d].t)return{t:b[a].t,line:L};}
+  if(b.every(Boolean)){const c0=b.filter(x=>x.t===0).length;return{t:c0>4?0:1,full:true,line:[]};}
+  return null;
+}
+/* Ranges never overlap, so an answer's rank decides its square. */
+const sqOf=r=>{const g=G();return g&&r?g.ranges.findIndex(([lo,hi])=>r>=lo&&r<=hi):null;};
+/* judge() for the square an answer lands in. A better rank upgrades your own square; a locked square is a miss. */
+function judgeAnswer(r,team){
+  if(r===null)return judge(null,null,team);
+  if(usedRank(r))return{block:true,why:"#"+r+" was already played. Ask for another answer"};
+  const sq=sqOf(r),j=judge(sq,r,team);
+  if(j.block&&j.code==="locked")
+    return{ok:false,why:"Lands in "+fmt(...G().ranges[sq])+", which is locked"};
+  return j;
+}
+function play(sq,r){
+  if(S.choose&&!S.win)return{block:true,why:"Choose who goes first"};
+  const team=S.turn,j=r?judgeAnswer(r,team):judge(sq,r,team);
+  if(r)sq=sqOf(r);
+  if(j.block)return j;
+  commit(n=>{
+    const name=r?GAMES[n.g].answers[r-1][0]:null;
+    if(r)n.used.push({r,t:team,hit:!!j.ok});
+    if(j.ok)n.board[sq]={t:team,r};
+    n.flash={id:Date.now(),ok:!!j.ok,steal:!!j.steal,upgrade:!!j.upgrade,team,sq,r,name,why:j.why};
+    n.turn=1-team;
+    n.win=checkWin(n.board);
+    if(n.win){if(!n.done.includes(n.g))n.done.push(n.g);n.winners=Object.assign({},n.winners,{[n.g]:n.win.t});}
+  });
+  return j;
+}
+function startGame(i){commit(n=>{Object.assign(n,freshRound(i));n.season=GAMES[i].season;adjustNames(n,n.season);n.done=(n.done||[]).filter(x=>x!==i);n.winners=Object.assign({},n.winners);delete n.winners[i];});}
+function toMenu(){commit(n=>{n.g=null;n.reveal=false;n.flash=null;});}
+function setTurn(t){commit(n=>{n.turn=t;n.choose=false;});}
+function setFirst(t){commit(n=>{n.turn=t;n.choose=false;n.flash=null;});}
+function setReveal(v){commit(n=>{n.reveal=v;});}
+function setName(i,v){v=v.trim().slice(0,24)||SEASONS[curSeason()].names[i];if(S.names[i]===v)return;commit(n=>{n.names[i]=v;});}
+
+/* ================= SYNC (host phone ⇄ TV) ================= */
+let room=null,peers=0,live=false;
+let bc=null;try{bc=new BroadcastChannel("holiday-squares");bc.onmessage=e=>{const d=e.data;if(valid(d)&&Number(d.v)>Number(S.v||0)){hist.push(JSON.stringify(S));if(hist.length>80)hist.shift();S=Object.assign({done:[],winners:{}},d);save();render();}};}catch(e){bc=null;}
+function broadcast(){try{bc&&bc.postMessage(S);}catch(e){}if(room&&room.connected())room.emit("state",S).catch(()=>{});}
+(async()=>{
+  try{room=window.claude&&window.claude.use?await window.claude.use("room"):null;}catch(e){room=null;}
+  if(!room){syncUI();return;}
+  room.on("state",m=>{
+    if(m.sameTab)return;const d=m.data;
+    if(!valid(d)||!(Number(d.v)>Number(S.v||0)))return;
+    hist.push(JSON.stringify(S));if(hist.length>80)hist.shift();
+    S=Object.assign({done:[],winners:{}},d);save();render();
+  },()=>{room=null;syncUI();});
+  room.onPeers(ch=>{peers=ch.peers.length;if(ch.joined.some(p=>!p.sameTab)&&S.v)broadcast();syncUI();},()=>{});
+  room.onConnection(c=>{live=c;if(c&&S.v)broadcast();syncUI();},()=>{});
+  room.presence({view:mode()}).catch(()=>{});
+})();
+function syncUI(){
+  const txt=!room?(LOCAL?"Offline · syncs with windows on this computer":"This screen only"):(!live?"Connecting…":(peers>1?"Linked · "+peers+" screens":"Waiting for the other screen"));
+  const on=!!room&&live&&peers>1;
+  document.querySelectorAll("[data-sync]").forEach(el=>{el.innerHTML='<span class="dot'+(on?" on":"")+'"></span>'+esc(txt);});
+}
+
+/* ================= RENDER ================= */
+const mode=()=>location.hash.replace("#","").toLowerCase()==="answers"?"host":"tv";
+const BOW='<svg class="bow" viewBox="0 0 220 96" aria-hidden="true"><path class="tail" d="M104 50 C 92 70, 74 80, 58 92"/><path class="tail" d="M116 50 C 128 70, 146 80, 162 92"/><path d="M110 42 C 80 6, 30 8, 36 36 C 42 58, 88 54, 110 42 Z"/><path d="M110 42 C 140 6, 190 8, 184 36 C 178 58, 132 54, 110 42 Z"/><ellipse cx="110" cy="43" rx="11" ry="10"/></svg>';
+const LEAF='<svg class="bow leaf" viewBox="0 0 220 96" aria-hidden="true"><path class="tail" d="M110 72 L110 94"/><path d="M104 66 C 80 72, 56 62, 48 44 C 72 36, 96 46, 104 66 Z"/><path d="M116 66 C 140 72, 164 62, 172 44 C 148 36, 124 46, 116 66 Z"/><path d="M110 8 C 132 28, 132 58, 110 74 C 88 58, 88 28, 110 8 Z"/><path class="tail" d="M110 18 L110 70"/><path class="tail" d="M100 62 L62 47"/><path class="tail" d="M120 62 L158 47"/></svg>';
+const DECO=()=>curSeason()==="xmas"?BOW:LEAF;
+const LOCK='<svg class="lock" viewBox="0 0 16 16" aria-label="locked"><path d="M4 7V5a4 4 0 0 1 8 0v2h1v8H3V7h1zm2 0h4V5a2 2 0 0 0-4 0v2z"/></svg>';
+let lastFlash=S.flash?S.flash.id:null,flashTimer=null,sel={sq:null,r:undefined},query="",winKey=()=>S.win?S.g+":"+S.used.length+":"+S.win.t:null,lastWin=winKey(),winHide=false,resetArm=false,resetTimer=null,note="";
+
+function render(){
+  const m=mode();
+  document.documentElement.dataset.season=curSeason();
+  document.getElementById("tv").hidden=m!=="tv";
+  document.getElementById("host").hidden=m!=="host";
+  if(m==="tv")renderTV();else renderHost();
+  syncUI();
+}
+
+/* ---------- TV ---------- */
+function renderTV(){
+  const el=document.getElementById("tv"),g=G();
+  if(!g){el.innerHTML=menuHTML();bindMenu(el);return;}
+  const counts=[0,1].map(t=>S.board.filter(c=>c&&c.t===t).length);
+  const winLine=S.win?S.win.line:[];
+  const team=t=>`<div class="team ${S.turn===t&&!S.win&&!S.choose?"on":""}">
+      <div class="chip" style="background:var(${t?"--berry":"--cocoa"})"></div>
+      <div class="nm">${esc(S.names[t])}</div>
+      <div class="cnt">${counts[t]} square${counts[t]===1?"":"s"}</div>
+      <div class="turn">Your turn</div></div>`;
+  const sqs=g.ranges.map(([lo,hi],i)=>{
+    const c=S.board[i];
+    if(!c)return `<div class="sq" aria-label="Square ${fmt(lo,hi)}"><span class="rng"><i>#</i>${lo===hi?lo:lo+"–"+hi}</span></div>`;
+    const locked=c.r===lo, name=g.answers[c.r-1][0];
+    return `<div class="sq own t${c.t} ${winLine.includes(i)?"winline":""} ${S.flash&&S.flash.sq===i&&S.flash.ok&&S.flash.id!==lastFlash?"pop":""}" aria-label="${esc(S.names[c.t])} holds ${fmt(lo,hi)} with ${esc(name)}">
+      <span class="lbl">${fmt(lo,hi)}</span><span class="ans">${esc(name)}</span><span class="meta">#${c.r}${locked?LOCK:""}</span></div>`;
+  }).join("");
+  const played=S.used.map(u=>`<span class="pc ${u.hit?"t"+u.t:"miss"}">#${u.r} ${esc(g.answers[u.r-1][0])}</span>`).join("");
+  el.innerHTML=`
+    <div class="hd"><div class="brand script">${SEASONS[curSeason()].title}</div><div class="round caps">Game ${posIn(S.g)} of ${seasonGames(curSeason()).length} · ${esc(g.name)}</div></div>
+    <h1 class="prompt"><small>Top 30 answers</small>${esc(g.prompt)}</h1>
+    <div class="stage">${team(0)}
+      <div class="board-wrap"><div class="board">${sqs}</div><div class="flash" id="flash" role="status" aria-live="polite"></div></div>
+      ${team(1)}</div>
+    <div class="played">${played||'<span class="pc" style="border-style:dashed;color:var(--ink-soft)">Answers played will show here</span>'}</div>
+    <div class="bar">
+      <button class="btn" data-act="menu">Menu</button>
+      <button class="btn" data-act="undo" ${hist.length?"":"disabled"}>Undo</button>
+      <button class="btn" data-act="swap">Switch turn</button>
+      <button class="btn" data-act="reveal">Show all answers</button>
+      <button class="btn" data-act="fs">Full screen</button>
+      ${LOCAL?'<button class="btn" data-act="keywin">Open answer key</button>':""}
+      ${S.win&&winHide?'<button class="btn solid" data-act="showwin">Show winner</button>':""}
+    </div>
+    <div class="link" data-sync></div>
+    ${S.win&&!winHide?winHTML():""}${S.choose&&!S.win?firstHTML():""}${S.reveal?revealHTML():""}`;
+  el.querySelectorAll("[data-act]").forEach(b=>b.onclick=()=>act(b.dataset.act));
+  bindOverlays(el);
+  if(S.flash&&S.flash.id!==lastFlash){lastFlash=S.flash.id;flashMsg(S.flash);}
+  if(!S.win)winHide=false;
+  const wk=winKey();if(wk&&wk!==lastWin){winHide=false;confetti(S.win.t);}lastWin=wk;
+}
+function act(a){
+  if(a==="menu")toMenu();
+  else if(a==="undo")undo();
+  else if(a==="swap")setTurn(1-S.turn);
+  else if(a==="miss")play(null,null);
+  else if(a==="reveal")setReveal(true);
+  else if(a==="hide")setReveal(false);
+  else if(a==="next"){const nx=seasonGames(curSeason()).find(i=>!S.done.includes(i));nx===undefined?toMenu():startGame(nx);}
+  else if(a==="replay")startGame(S.g);
+  else if(a==="viewboard"){winHide=true;renderTV();}
+  else if(a==="keywin")openWin("answers");
+  else if(a==="showwin"){winHide=false;renderTV();}
+  else if(a==="fs"){const d=document.documentElement;if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});else if(d.requestFullscreen)d.requestFullscreen().catch(()=>{});}
+}
+function flashMsg(f,local){
+  const el=document.getElementById("flash");if(!el)return;
+  const nm=f.team!=null?esc(S.names[f.team]):"";
+  let big,sub;
+  if(local){big="Hmm…";sub=esc(f.why);}
+  else if(f.ok){big=f.steal?"Stolen by "+nm+"!":f.upgrade?nm+" upgrades!":nm+" takes it!";sub=esc(f.name)+" · #"+f.r;}
+  else if(f.r){big="So close!";sub=esc(f.name)+" is #"+f.r+" · "+esc(f.why.replace(/^#\d+ /,""));}
+  else{big="Not on the list!";sub="Turn passes";}
+  el.className="flash show"+(f.ok?"":" bad");
+  el.innerHTML=`<div class="big">${big}</div><div class="sub">${sub}</div>`;
+  clearTimeout(flashTimer);flashTimer=setTimeout(()=>{el.className="flash"},3400);
+}
+function firstHTML(){
+  return `<div class="ov"><div class="card winbox">${DECO()}
+    <div class="caps" style="color:var(--ink-soft);letter-spacing:.14em">Game ${posIn(S.g)} · ${esc(G().name)}</div>
+    <div class="big">Who goes first?</div>
+    <div style="height:18px"></div>
+    <div class="row"><button class="btn t0 bigbtn" data-first="0">${esc(S.names[0])}</button><button class="btn t1 bigbtn" data-first="1">${esc(S.names[1])}</button></div>
+  </div></div>`;
+}
+function winHTML(){
+  const w=S.win,c=[0,1].map(t=>S.board.filter(x=>x&&x.t===t).length);
+  return `<div class="ov"><div class="card winbox">${DECO()}
+    <div class="caps" style="color:var(--ink-soft);letter-spacing:.14em">${w.full?"Board full · most squares":"Three in a row"}</div>
+    <div class="big" style="color:var(${w.t?"--berry":"--cocoa"})">${esc(S.names[w.t])} wins!</div>
+<div style="height:14px"></div>
+    <div class="row"><button class="btn" data-act="viewboard">View board</button><button class="btn" data-act="reveal">Show all answers</button><button class="btn" data-act="replay">Replay</button><button class="btn" data-act="menu">Menu</button><button class="btn solid" data-act="next">Next game</button></div>
+  </div></div>`;
+}
+function revealHTML(){
+  const g=G();
+  const li=g.answers.map((a,i)=>{const u=usedRank(i+1);return `<li class="${u?(u.hit?"t"+u.t:"miss"):""}"><span class="r">#${i+1}</span><span class="n">${esc(a[0])}</span></li>`}).join("");
+  return `<div class="ov" data-hide><div class="card reveal"><h3>${esc(g.name)}</h3>
+    <p class="honor">${esc(g.prompt)}</p><ol>${li}</ol>
+    <div class="row"><button class="btn solid" data-act="hide">Back to the board</button></div></div></div>`;
+}
+function bindOverlays(el){
+  el.querySelectorAll(".ov [data-act]").forEach(b=>b.onclick=()=>act(b.dataset.act));
+  el.querySelectorAll("[data-first]").forEach(b=>b.onclick=()=>setFirst(+b.dataset.first));
+  const rv=el.querySelector(".ov[data-hide]");if(rv)rv.addEventListener("click",e=>{if(e.target===rv)setReveal(false);});
+}
+function menuHTML(){
+  const cs=curSeason();
+  const items=seasonGames(cs).map((i,k)=>{const g=GAMES[i];return `<li><button class="item ${winnerOf(i)!==null?"done":""}" data-game="${i}">
+      <span class="no">No. ${k+1}</span><span class="gn">${esc(g.name)}</span><span class="lead"></span><span class="kind">${g.kind}</span>
+      <span class="q"><span>${esc(g.prompt)}</span>${wonPill(i)}</span></button></li>`;}).join("");
+  return `<div class="menu"><div class="card">${DECO()}
+    <h1 class="title">${SEASONS[cs].title}</h1>
+    <div class="seasons" role="group" aria-label="Holiday">${Object.entries(SEASONS).map(([k,x])=>`<button class="${k===cs?"on":""}" data-season="${k}" aria-pressed="${k===cs}">${x.label}</button>`).join("")}</div>
+    <p class="honor">Today’s menu · ${SEASONS[cs].greet}</p>
+    <ul class="items">${items}</ul>
+    <div class="rules">
+      <div><b>Name an answer</b>On your turn, give one answer to the survey question.</div>
+      <div><b>It finds its square</b>The answer’s rank decides its square. If that square is open, it’s yours.</div>
+      <div><b>Beat what’s there</b>A better-ranked answer steals the other team’s square or upgrades your own. The top answer in a range locks it.</div>
+      <div><b>Win</b>Three in a row wins. If the board fills first, most squares wins.</div>
+    </div>
+    <div class="names">
+      <label><span class="sw" style="background:var(--cocoa)"></span><input id="n0" value="${esc(S.names[0])}" maxlength="24" aria-label="Team one name"></label>
+      <label><span class="sw" style="background:var(--berry)"></span><input id="n1" value="${esc(S.names[1])}" maxlength="24" aria-label="Team two name"></label>
+      ${LOCAL?'<button class="btn solid" data-act="keywin">Open answer key window</button>':""}
+    </div>
+  </div></div><div class="link" data-sync></div>`;
+}
+function fitMenu(){
+  const c=document.querySelector("#tv .menu .card");if(!c)return;
+  c.style.zoom="";const avail=innerHeight-48;
+  const h=c.getBoundingClientRect().height;if(h>avail)c.style.zoom=String(Math.max(.6,avail/h));
+}
+addEventListener("resize",()=>{if(mode()==="tv"&&S.g===null)fitMenu();});
+function bindMenu(el){
+  requestAnimationFrame(fitMenu);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitMenu);
+  el.querySelectorAll("[data-act]").forEach(b=>b.onclick=()=>act(b.dataset.act));
+  el.querySelectorAll("[data-game]").forEach(b=>b.onclick=()=>startGame(+b.dataset.game));
+  el.querySelectorAll("[data-season]").forEach(b=>b.onclick=()=>setSeason(b.dataset.season));
+  [0,1].forEach(i=>{const inp=el.querySelector("#n"+i);inp.onchange=()=>setName(i,inp.value);});
+}
+
+/* ---------- HOST / ANSWER KEY ---------- */
+const norm=s=>s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g," ").trim();
+function matches(a,q){
+  if(!q)return true;
+  return a.some(x=>{const n=norm(x);return n.includes(q)||(q.length>3&&q.includes(n));});
+}
+function renderHost(){
+  const el=document.getElementById("host"),g=G();
+  const focusQ=document.activeElement&&document.activeElement.id==="q";
+  const opts=`<option value="-1"${S.g===null?" selected":""}>Menu</option>`+Object.entries(SEASONS).map(([k,z])=>`<optgroup label="${z.label}">`+seasonGames(k).map(i=>{const x=GAMES[i];return `<option value="${i}"${S.g===i?" selected":""}>${posIn(i)}. ${esc(x.name)}${winnerOf(i)!==null?" ✓ "+esc(S.names[winnerOf(i)].replace(/^team\s+/i,"")):""}</option>`;}).join("")+`</optgroup>`).join("");
+  const short=t=>esc(S.names[t].replace(/^team\s+/i,""));
+  const winBtn=location.protocol==="file:"||location.protocol.startsWith("http")&&!/claude/.test(location.host)?`<button class="btn" data-h="tvwin">Open TV window</button>`:"";
+  let main="";
+  if(!g){
+    main=`<ul class="gpick" style="grid-column:1/-1">${GAMES.map((x,i)=>`<li class="${winnerOf(i)!==null?"done":""}"><button data-game="${i}"><span class="gn">${SEASONS[x.season].label} ${posIn(i)}. ${esc(x.name)}</span><span class="q">${esc(x.prompt)}</span>${wonPill(i)}</button></li>`).join("")}</ul>`;
+  }else{
+    const q=norm(query);
+    const winLine=S.win?S.win.line:[];
+    const tgt=S.flash&&S.flash.ok&&!S.win?S.flash.sq:-1,tgtOk=true;
+    const mini=g.ranges.map(([lo,hi],i)=>{
+      const c=S.board[i];
+      return `<div class="ms ${c?"t"+c.t:""} ${tgt===i?"sel":""} ${tgt===i&&tgtOk?"fit":""} ${winLine.includes(i)?"winline":""}">
+        <span class="rng">${fmt(lo,hi)}</span>${c?`<span class="sm">${esc(g.answers[c.r-1][0])} #${c.r}${c.r===lo?" 🔒":""}</span>`:""}</div>`;
+    }).join("");
+    const rows=g.answers.map((a,i)=>{
+      const r=i+1,u=usedRank(r),m=q&&matches(a,q);
+      const tag=u?(u.hit?`<span class="tag t${u.t}">${short(u.t)}</span>`:`<span class="tag miss">Miss</span>`):"";
+      return `<li class="${u?"used":""} ${sel.r===r?"sel":""} ${q?(m?"hit":"dim"):""}"><button data-ar="${r}" title="${esc(a.join(" · "))}"><span class="rk">${r}</span><span class="tx"><span class="nm">${esc(a[0])}</span>${a.length>1?`<span class="al">${esc(a.slice(1).join(" · "))}</span>`:""}</span>${tag}</button></li>`;
+    }).join("");
+    let panel="";
+    if(S.choose&&!S.win){
+      panel=`<div class="st"><b>Who goes first?</b><br>Pick the team that starts this game.</div>
+        <div class="row"><button class="btn t0" data-first="0">${esc(S.names[0])}</button><button class="btn t1" data-first="1">${esc(S.names[1])}</button></div>`;
+    }else if(S.win){
+      panel=`<div class="winnote">${esc(S.names[S.win.t])} won this game!</div>
+        <div class="row"><button class="btn" data-h="replay">Replay</button><button class="btn solid" data-h="next">Next game</button></div>`;
+    }else{
+      let st;
+      const f=S.flash;
+      if(note)st=`<span class="no">${esc(note)}</span>`;
+      else if(f&&f.team!=null){
+        const who=esc(S.names[f.team]);
+        if(f.ok)st=`<span class="ok">${who} ${f.steal?"stole":f.upgrade?"upgraded":"took"} ${fmt(...g.ranges[f.sq])}</span><br>${esc(f.name)} #${f.r}`;
+        else if(f.r)st=`<span class="no">${who} missed: ${esc(f.name)} #${f.r}</span><br>${esc(f.why)}`;
+        else st=`<span class="no">${who}: not on the list</span><br>Turn passed`;
+      }else st="Tap the answer they said and it scores right away. Type in the search box and press Enter to find it fast.";
+      panel=`<div class="st">${st}</div><div class="row"><button class="btn" data-h="none">Not on list</button></div>`;
+    }
+    main=`<ol class="agrid">${rows}</ol>
+      <div class="side">
+        <div class="step"><span>The board</span><b>${S.win?"Game over":S.choose?"Choose first team":esc(S.names[S.turn])+"’s turn"}</b></div>
+        <div class="mini">${mini}</div>
+        ${panel}
+        <div class="tools">
+          <button class="btn" data-h="undo" ${hist.length?"":"disabled"}>Undo</button>
+          <button class="btn ${resetArm?"armed":""}" data-h="reset">${resetArm?"Tap again":"Reset board"}</button>
+          <button class="btn" data-h="reveal">${S.reveal?"Hide":"Show"} answers on TV</button>
+        </div>
+      </div>`;
+  }
+  el.innerHTML=`<div class="hbar">
+      <span class="htitle">Answer key</span>
+      <select id="gameSel" aria-label="Game">${opts}</select>
+      ${g?`<div class="turns"><button class="t0 ${S.turn===0&&!S.choose?"on":""}" data-turn="0">${esc(S.names[0])}</button><button class="t1 ${S.turn===1&&!S.choose?"on":""}" data-turn="1">${esc(S.names[1])}</button></div>
+      <input id="q" type="search" placeholder="Search their guess… (Enter picks it)" value="${esc(query)}" autocomplete="off" autocapitalize="off" spellcheck="false">`:""}
+      ${winBtn}<span class="sync" data-sync></span>
+    </div>
+    ${g?`<div class="hq">${esc(g.prompt)}</div>`:""}
+    <div class="hmain">${main}</div>`;
+  el.querySelector("#gameSel").onchange=e=>{const v=+e.target.value;sel={sq:null,r:undefined};query="";v<0?toMenu():startGame(v);};
+  el.querySelectorAll("[data-game]").forEach(b=>b.onclick=()=>{sel={sq:null,r:undefined};query="";startGame(+b.dataset.game);});
+  el.querySelectorAll("[data-turn]").forEach(b=>b.onclick=()=>setTurn(+b.dataset.turn));
+  el.querySelectorAll("[data-first]").forEach(b=>b.onclick=()=>{note="";setFirst(+b.dataset.first);});
+  el.querySelectorAll("[data-ar]").forEach(b=>b.onclick=()=>scoreAnswer(+b.dataset.ar));
+  const qi=el.querySelector("#q");
+  if(qi){
+    qi.oninput=()=>{query=qi.value;const pos=qi.selectionStart;renderHost();const n=document.getElementById("q");n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}};
+    qi.onkeydown=e=>{
+      if(e.key==="Enter"){const q=norm(query);const hits=g.answers.map((a,i)=>matches(a,q)?i+1:0).filter(Boolean);const fresh=hits.filter(r=>!usedRank(r));const pick=(fresh[0]||hits[0]);if(q&&pick){scoreAnswer(pick);const n=document.getElementById("q");if(n)n.focus();}}
+      else if(e.key==="Escape"){query="";note="";renderHost();document.getElementById("q").focus();}
+    };
+    if(focusQ){qi.focus();const L=qi.value.length;try{qi.setSelectionRange(L,L)}catch(e){}}
+  }
+  el.querySelectorAll("[data-h]").forEach(b=>b.onclick=()=>{
+    const h=b.dataset.h;
+    note="";
+    if(h==="undo")undo();
+    else if(h==="reveal")setReveal(!S.reveal);
+    else if(h==="tvwin")openWin("");
+    else if(h==="replay"){sel={sq:null,r:undefined};query="";startGame(S.g);}
+    else if(h==="next"){sel={sq:null,r:undefined};query="";act("next");}
+    else if(h==="reset"){
+      clearTimeout(resetTimer);
+      if(!resetArm){resetArm=true;renderHost();resetTimer=setTimeout(()=>{resetArm=false;if(mode()==="host")renderHost();},3500);}
+      else{resetArm=false;sel={sq:null,r:undefined};query="";startGame(S.g);}
+    }
+    else if(h==="none"){note="";query="";play(null,null);}
+  });
+  if(!focusQ&&qi&&matchMedia("(min-width:821px)").matches&&document.hasFocus())qi.focus();
+}
+/* One tap scores: the answer's rank picks the square, then it's awarded, stolen, upgraded or missed. Undo reverses it. */
+function scoreAnswer(r){
+  if(S.win)return;
+  const j=play(null,r);
+  if(j&&j.block){note=j.why;renderHost();return;}
+  note="";query="";renderHost();
+}
+/* Local play: open the other screen in its own window (TV on the TV, answer key on the laptop). */
+function openWin(hash){
+  const url=location.href.split("#")[0]+(hash?"#"+hash:"");
+  const w=window.open(url,hash?"bcs-answers":"bcs-tv",hash?"popup,width=1200,height=800":"");
+  if(w)try{w.focus()}catch(e){}
+}
+
+/* ---------- confetti ---------- */
+function confetti(t){
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+  const cv=document.getElementById("confetti"),cx=cv.getContext("2d");cv.hidden=false;
+  const W=cv.width=innerWidth,H=cv.height=innerHeight;
+  const cs=getComputedStyle(document.documentElement);
+  const cols=[cs.getPropertyValue(t?"--berry":"--cocoa"),cs.getPropertyValue("--stripe-b"),cs.getPropertyValue("--rule"),"#ffffff"];
+  const ps=Array.from({length:160},()=>({x:Math.random()*W,y:-20-Math.random()*H*.5,vx:(Math.random()-.5)*3,vy:2+Math.random()*4,s:5+Math.random()*7,a:Math.random()*6,c:cols[Math.floor(Math.random()*cols.length)],h:Math.random()<.35}));
+  const t0=performance.now();
+  (function step(now){
+    cx.clearRect(0,0,W,H);
+    for(const p of ps){p.x+=p.vx;p.y+=p.vy;p.a+=.08;cx.save();cx.translate(p.x,p.y);cx.rotate(p.a);cx.fillStyle=p.c;
+      if(p.h){const s=p.s;cx.beginPath();cx.moveTo(0,s*.3);cx.bezierCurveTo(-s,-s*.4,-s*.4,-s,0,-s*.35);cx.bezierCurveTo(s*.4,-s,s,-s*.4,0,s*.3);cx.fill();}
+      else cx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);cx.restore();}
+    if(now-t0<4200)requestAnimationFrame(step);else{cx.clearRect(0,0,W,H);cv.hidden=true;}
+  })(t0);
+}
+
+addEventListener("hashchange",render);
+addEventListener("storage",e=>{if(e.key===KEY){try{const s=JSON.parse(e.newValue);if(valid(s)&&s.v>S.v){hist.push(JSON.stringify(S));if(hist.length>80)hist.shift();S=Object.assign({done:[],winners:{}},s);render();}}catch(x){}}});
+try{navigator.wakeLock&&navigator.wakeLock.request("screen").catch(()=>{});}catch(e){}
+render();
+</script>
+
+</body>
+</html>
